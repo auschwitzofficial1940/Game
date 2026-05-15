@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cyber Terminal Unlock</title>
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    background: radial-gradient(circle at center, #173132, #050909 70%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: monospace;
+    color: #28ffe0;
+    overflow: hidden;
+  }
+
+  .terminal {
+    width: 760px;
+    height: 420px;
+    background: rgba(5, 20, 24, 0.88);
+    border: 2px solid #00ffe1;
+    box-shadow:
+      0 0 18px #00ffe1,
+      inset 0 0 35px rgba(0, 255, 225, 0.2);
+    position: relative;
+    padding: 28px;
+    overflow: hidden;
+  }
+
+  .terminal::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.05) 0px,
+      rgba(255,255,255,0.05) 1px,
+      transparent 2px,
+      transparent 5px
+    );
+    pointer-events: none;
+    animation: scan 4s linear infinite;
+  }
+
+  @keyframes scan {
+    from { transform: translateY(-20px); }
+    to { transform: translateY(20px); }
+  }
+
+  .title {
+    font-size: 14px;
+    letter-spacing: 5px;
+    opacity: 0.8;
+  }
+
+  .game {
+    margin-top: 35px;
+    height: 110px;
+    border: 1px solid rgba(0,255,225,0.35);
+    position: relative;
+    background: rgba(0,255,225,0.04);
+  }
+
+  .track {
+    position: absolute;
+    left: 30px;
+    right: 30px;
+    top: 42px;
+    height: 28px;
+    border-top: 1px solid rgba(0,255,225,0.3);
+    border-bottom: 1px solid rgba(0,255,225,0.3);
+  }
+
+  .zone {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    width: 80px;
+    height: 55px;
+    transform: translateX(-50%);
+    border: 2px solid #29ffe7;
+    box-shadow: 0 0 15px #29ffe7;
+    background: rgba(41,255,231,0.12);
+  }
+
+  .bar {
+    position: absolute;
+    top: 26px;
+    width: 10px;
+    height: 65px;
+    background: white;
+    box-shadow: 0 0 18px white;
+    left: 30px;
+  }
+
+  .data {
+    margin-top: 35px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .panel {
+    border: 1px solid rgba(0,255,225,0.25);
+    height: 120px;
+    padding: 14px;
+    overflow: hidden;
+    background: rgba(0,255,225,0.035);
+  }
+
+  .line {
+    margin-bottom: 8px;
+    opacity: 0.85;
+    animation: flicker 1.5s infinite alternate;
+  }
+
+  @keyframes flicker {
+    from { opacity: 0.45; }
+    to { opacity: 1; }
+  }
+
+  .status {
+    position: absolute;
+    bottom: 22px;
+    left: 28px;
+    font-size: 16px;
+    letter-spacing: 2px;
+  }
+
+  .success {
+    color: #62ff7a;
+    text-shadow: 0 0 12px #62ff7a;
+  }
+
+  .fail {
+    color: #ff3d3d;
+    text-shadow: 0 0 12px #ff3d3d;
+  }
+
+  .hint {
+    position: absolute;
+    bottom: 22px;
+    right: 28px;
+    opacity: 0.7;
+  }
+</style>
+</head>
+
+<body>
+  <div class="terminal">
+    <div class="title">LOCK /// ACCESS TERMINAL</div>
+
+    <div class="game">
+      <div class="track"></div>
+      <div class="zone"></div>
+      <div class="bar" id="bar"></div>
+    </div>
+
+    <div class="data">
+      <div class="panel" id="log"></div>
+      <div class="panel">
+        <div class="line">02  ENCRYPT</div>
+        <div class="line">03  BYPASS</div>
+        <div class="line">04  ACCESS</div>
+        <div class="line">06  SYSTEM</div>
+        <div class="line">07  SIGNAL</div>
+      </div>
+    </div>
+
+    <div class="status" id="status">WAITING FOR INPUT...</div>
+    <div class="hint">PRESS SPACE</div>
+  </div>
+
+<script>
+  const bar = document.getElementById("bar");
+  const statusText = document.getElementById("status");
+  const log = document.getElementById("log");
+
+  let x = 30;
+  let speed = 3.2;
+  let direction = 1;
+  let unlocked = false;
+
+  function addLog(text) {
+    const div = document.createElement("div");
+    div.className = "line";
+    div.textContent = "> " + text;
+    log.prepend(div);
+
+    if (log.children.length > 7) {
+      log.removeChild(log.lastChild);
+    }
+  }
+
+  function animate() {
+    if (!unlocked) {
+      x += speed * direction;
+
+      if (x > 700 || x < 30) {
+        direction *= -1;
+      }
+
+      bar.style.left = x + "px";
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  document.addEventListener("keydown", function(e) {
+    if (e.code === "Space" && !unlocked) {
+      e.preventDefault();
+
+      const zoneLeft = 760 / 2 - 40;
+      const zoneRight = 760 / 2 + 40;
+
+      if (x >= zoneLeft && x <= zoneRight) {
+        unlocked = true;
+        statusText.textContent = "ACCESS GRANTED";
+        statusText.className = "status success";
+        addLog("AUTH KEY MATCHED");
+        addLog("DOOR UNLOCKED");
+      } else {
+        statusText.textContent = "ACCESS DENIED";
+        statusText.className = "status fail";
+        addLog("BAD TIMING");
+        addLog("RETRY REQUIRED");
+
+        setTimeout(() => {
+          statusText.textContent = "WAITING FOR INPUT...";
+          statusText.className = "status";
+        }, 650);
+      }
+    }
+  });
+
+  setInterval(() => {
+    if (!unlocked) {
+      addLog("DATA STREAM " + Math.floor(Math.random() * 9999));
+    }
+  }, 700);
+
+  animate();
+</script>
+</body>
+</html>
