@@ -2,247 +2,527 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Terminal Unlock</title>
+<title>Safe Wall Loot Game</title>
 <style>
-  body {
-    margin: 0;
-    height: 100vh;
-    background: radial-gradient(circle at center, #173132, #050909 70%);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-family: monospace;
-    color: #28ffe0;
-    overflow: hidden;
-  }
+* { box-sizing: border-box; }
 
-  .terminal {
-    width: 760px;
-    height: 420px;
-    background: rgba(5, 20, 24, 0.88);
-    border: 2px solid #00ffe1;
-    box-shadow:
-      0 0 18px #00ffe1,
-      inset 0 0 35px rgba(0, 255, 225, 0.2);
-    position: relative;
-    padding: 28px;
-    overflow: hidden;
-  }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at center, #1b3031, #050707 75%);
+  font-family: monospace;
+  color: #28ffe7;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-  .terminal::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      to bottom,
-      rgba(255,255,255,0.05) 0px,
-      rgba(255,255,255,0.05) 1px,
-      transparent 2px,
-      transparent 5px
-    );
-    pointer-events: none;
-    animation: scan 4s linear infinite;
-  }
+.app {
+  width: 1100px;
+  height: 650px;
+  display: grid;
+  grid-template-columns: 1fr 430px;
+  gap: 22px;
+}
 
-  @keyframes scan {
-    from { transform: translateY(-20px); }
-    to { transform: translateY(20px); }
-  }
+.safe-wall {
+  border: 2px solid rgba(0,255,230,0.45);
+  background: rgba(4,18,20,0.85);
+  padding: 25px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  box-shadow: inset 0 0 35px rgba(0,255,230,0.12);
+}
 
-  .title {
-    font-size: 14px;
-    letter-spacing: 5px;
-    opacity: 0.8;
-  }
+.safe {
+  height: 120px;
+  background:
+    linear-gradient(145deg, #273536, #0d1517);
+  border: 2px solid rgba(180,220,220,0.25);
+  position: relative;
+  cursor: pointer;
+  transition: 0.15s;
+  box-shadow:
+    inset 0 0 20px rgba(255,255,255,0.08),
+    0 0 10px rgba(0,0,0,0.5);
+}
 
-  .game {
-    margin-top: 35px;
-    height: 110px;
-    border: 1px solid rgba(0,255,225,0.35);
-    position: relative;
-    background: rgba(0,255,225,0.04);
-  }
+.safe:hover {
+  transform: scale(1.04);
+  border-color: #28ffe7;
+  box-shadow: 0 0 18px rgba(40,255,231,0.5);
+}
 
-  .track {
-    position: absolute;
-    left: 30px;
-    right: 30px;
-    top: 42px;
-    height: 28px;
-    border-top: 1px solid rgba(0,255,225,0.3);
-    border-bottom: 1px solid rgba(0,255,225,0.3);
-  }
+.safe.opened {
+  opacity: 0.45;
+  cursor: default;
+}
 
-  .zone {
-    position: absolute;
-    top: 30px;
-    left: 50%;
-    width: 80px;
-    height: 55px;
-    transform: translateX(-50%);
-    border: 2px solid #29ffe7;
-    box-shadow: 0 0 15px #29ffe7;
-    background: rgba(41,255,231,0.12);
-  }
+.safe-door {
+  position: absolute;
+  inset: 14px;
+  border: 2px solid rgba(255,255,255,0.18);
+}
 
-  .bar {
-    position: absolute;
-    top: 26px;
-    width: 10px;
-    height: 65px;
-    background: white;
-    box-shadow: 0 0 18px white;
-    left: 30px;
-  }
+.safe-knob {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #e8e8d0, #665f45);
+  position: absolute;
+  right: 22px;
+  top: 42px;
+  box-shadow: 0 0 8px rgba(255,220,120,0.45);
+}
 
-  .data {
-    margin-top: 35px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
+.safe-label {
+  position: absolute;
+  left: 12px;
+  bottom: 8px;
+  font-size: 12px;
+  opacity: 0.75;
+}
 
-  .panel {
-    border: 1px solid rgba(0,255,225,0.25);
-    height: 120px;
-    padding: 14px;
-    overflow: hidden;
-    background: rgba(0,255,225,0.035);
-  }
+.panel {
+  border: 2px solid rgba(0,255,230,0.55);
+  background: rgba(3,15,18,0.92);
+  padding: 22px;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 0 20px rgba(0,255,230,0.35),
+    inset 0 0 30px rgba(0,255,230,0.12);
+}
 
-  .line {
-    margin-bottom: 8px;
-    opacity: 0.85;
-    animation: flicker 1.5s infinite alternate;
-  }
+.title {
+  letter-spacing: 4px;
+  font-size: 14px;
+  margin-bottom: 22px;
+}
 
-  @keyframes flicker {
-    from { opacity: 0.45; }
-    to { opacity: 1; }
-  }
+.game {
+  height: 120px;
+  border: 1px solid rgba(0,255,230,0.3);
+  position: relative;
+  background: rgba(0,255,230,0.035);
+}
 
-  .status {
-    position: absolute;
-    bottom: 22px;
-    left: 28px;
-    font-size: 16px;
-    letter-spacing: 2px;
-  }
+.track {
+  position: absolute;
+  left: 25px;
+  right: 25px;
+  top: 52px;
+  height: 24px;
+  border-top: 1px solid rgba(0,255,230,0.35);
+  border-bottom: 1px solid rgba(0,255,230,0.35);
+}
 
-  .success {
-    color: #62ff7a;
-    text-shadow: 0 0 12px #62ff7a;
-  }
+.zone {
+  position: absolute;
+  top: 36px;
+  height: 56px;
+  border: 2px solid #22ffe6;
+  background: rgba(34,255,230,0.14);
+  box-shadow: 0 0 12px rgba(34,255,230,0.8);
+}
 
-  .fail {
-    color: #ff3d3d;
-    text-shadow: 0 0 12px #ff3d3d;
-  }
+.zone.unlocked {
+  border-color: #73ff84;
+  background: rgba(115,255,132,0.18);
+  opacity: 0.45;
+}
 
-  .hint {
-    position: absolute;
-    bottom: 22px;
-    right: 28px;
-    opacity: 0.7;
-  }
+.bar {
+  position: absolute;
+  top: 30px;
+  width: 8px;
+  height: 70px;
+  background: white;
+  box-shadow: 0 0 16px white;
+}
+
+.status {
+  margin-top: 18px;
+  letter-spacing: 2px;
+  height: 22px;
+}
+
+.auto-wrap {
+  margin-top: 28px;
+  position: relative;
+}
+
+.percent {
+  position: absolute;
+  right: 0;
+  top: -22px;
+  font-size: 13px;
+}
+
+.auto-bg {
+  height: 7px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(0,255,230,0.35);
+}
+
+.auto-fill {
+  height: 100%;
+  width: 0%;
+  background: #28ffe7;
+  box-shadow: 0 0 12px #28ffe7;
+}
+
+.loot-box {
+  margin-top: 26px;
+  min-height: 140px;
+  border: 1px solid rgba(255,255,255,0.18);
+  padding: 16px;
+  display: none;
+}
+
+.loot-box.show {
+  display: block;
+}
+
+.loot-quality {
+  font-size: 20px;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.loot-item {
+  font-size: 15px;
+  opacity: 0.9;
+}
+
+.red { color: #ff3b3b; text-shadow: 0 0 12px #ff3b3b; }
+.gold { color: #ffd85a; text-shadow: 0 0 12px #ffd85a; }
+.purple { color: #bd6bff; text-shadow: 0 0 12px #bd6bff; }
+.blue { color: #4aa3ff; text-shadow: 0 0 12px #4aa3ff; }
+.green { color: #5cff79; text-shadow: 0 0 12px #5cff79; }
+
+.log {
+  margin-top: 22px;
+  height: 120px;
+  overflow: hidden;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.hint {
+  position: absolute;
+  bottom: 14px;
+  right: 20px;
+  opacity: 0.6;
+  font-size: 12px;
+}
 </style>
 </head>
 
 <body>
-  <div class="terminal">
-    <div class="title">LOCK /// ACCESS TERMINAL</div>
 
-    <div class="game">
+<div class="app">
+  <div class="safe-wall" id="safeWall"></div>
+
+  <div class="panel">
+    <div class="title">SAFE WALL /// LOOT TERMINAL</div>
+
+    <div class="game" id="game">
       <div class="track"></div>
-      <div class="zone"></div>
       <div class="bar" id="bar"></div>
     </div>
 
-    <div class="data">
-      <div class="panel" id="log"></div>
-      <div class="panel">
-        <div class="line">02  ENCRYPT</div>
-        <div class="line">03  BYPASS</div>
-        <div class="line">04  ACCESS</div>
-        <div class="line">06  SYSTEM</div>
-        <div class="line">07  SIGNAL</div>
+    <div class="status" id="status">SELECT A SAFE...</div>
+
+    <div class="auto-wrap">
+      <div class="percent" id="percent">AUTO UNLOCK 0%</div>
+      <div class="auto-bg">
+        <div class="auto-fill" id="autoFill"></div>
       </div>
     </div>
 
-    <div class="status" id="status">WAITING FOR INPUT...</div>
-    <div class="hint">PRESS SPACE</div>
+    <div class="loot-box" id="lootBox">
+      <div class="loot-quality" id="lootQuality"></div>
+      <div class="loot-item" id="lootItem"></div>
+    </div>
+
+    <div class="log" id="log"></div>
+
+    <div class="hint">CLICK SAFE / PRESS SPACE</div>
   </div>
+</div>
 
 <script>
-  const bar = document.getElementById("bar");
-  const statusText = document.getElementById("status");
-  const log = document.getElementById("log");
+const safeWall = document.getElementById("safeWall");
+const game = document.getElementById("game");
+const bar = document.getElementById("bar");
+const statusText = document.getElementById("status");
+const percentText = document.getElementById("percent");
+const autoFill = document.getElementById("autoFill");
+const lootBox = document.getElementById("lootBox");
+const lootQuality = document.getElementById("lootQuality");
+const lootItem = document.getElementById("lootItem");
+const log = document.getElementById("log");
 
-  let x = 30;
-  let speed = 3.2;
-  let direction = 1;
-  let unlocked = false;
+const trackLeft = 25;
+const trackRight = 375;
 
-  function addLog(text) {
+let safes = [];
+let currentSafe = null;
+let zones = [];
+let x = trackLeft;
+let direction = 1;
+let speed = 3.8;
+let startTime = 0;
+let finished = true;
+
+const items = {
+  red: ["实验级能源核心", "军用黑卡", "原型武器蓝图"],
+  gold: ["金条箱", "高级芯片组", "加密数据盘"],
+  purple: ["稀有电池模块", "战术瞄准镜", "紫色密钥"],
+  blue: ["电子零件包", "保险箱破解器", "蓝色数据卡"],
+  green: ["现金小包", "旧硬盘", "普通工具组"]
+};
+
+const qualityNames = {
+  red: "红色传说物品",
+  gold: "金色高级物品",
+  purple: "紫色稀有物品",
+  blue: "蓝色精良物品",
+  green: "绿色普通物品"
+};
+
+function rand(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+function addLog(text) {
+  const div = document.createElement("div");
+  div.textContent = "> " + text;
+  log.prepend(div);
+  if (log.children.length > 8) log.removeChild(log.lastChild);
+}
+
+function createSafes() {
+  for (let i = 0; i < 12; i++) {
+    const difficulty = Math.floor(rand(4, 9));
+
+    const safe = {
+      id: i + 1,
+      difficulty,
+      opened: false,
+      element: null
+    };
+
     const div = document.createElement("div");
-    div.className = "line";
-    div.textContent = "> " + text;
-    log.prepend(div);
+    div.className = "safe";
+    div.innerHTML = `
+      <div class="safe-door"></div>
+      <div class="safe-knob"></div>
+      <div class="safe-label">SAFE-${String(i + 1).padStart(2, "0")} / LOCK ${difficulty}</div>
+    `;
 
-    if (log.children.length > 7) {
-      log.removeChild(log.lastChild);
+    div.addEventListener("click", () => selectSafe(safe));
+
+    safe.element = div;
+    safes.push(safe);
+    safeWall.appendChild(div);
+  }
+}
+
+function clearZones() {
+  document.querySelectorAll(".zone").forEach(z => z.remove());
+  zones = [];
+}
+
+function selectSafe(safe) {
+  if (safe.opened) {
+    statusText.textContent = "THIS SAFE IS EMPTY";
+    addLog("SAFE-" + safe.id + " ALREADY OPENED");
+    return;
+  }
+
+  currentSafe = safe;
+  finished = false;
+  startTime = Date.now();
+  x = trackLeft;
+  direction = 1;
+  speed = 3.2 + safe.difficulty * 0.25;
+
+  lootBox.classList.remove("show");
+  clearZones();
+  createZones(safe.difficulty);
+
+  statusText.textContent = "SAFE-" + safe.id + " SELECTED";
+  autoFill.style.width = "0%";
+  percentText.textContent = "AUTO UNLOCK 0%";
+
+  addLog("SAFE-" + safe.id + " LOADED");
+  addLog("DIFFICULTY LEVEL: " + safe.difficulty);
+}
+
+function createZones(count) {
+  for (let i = 0; i < count; i++) {
+    const width = rand(22, 65);
+    const left = rand(trackLeft + 10, trackRight - width - 10);
+
+    const zone = document.createElement("div");
+    zone.className = "zone";
+    zone.style.left = left + "px";
+    zone.style.width = width + "px";
+
+    game.appendChild(zone);
+
+    zones.push({
+      left,
+      right: left + width,
+      unlocked: false,
+      element: zone
+    });
+  }
+}
+
+function checkHit() {
+  if (finished || !currentSafe) return;
+
+  let hit = false;
+
+  for (const zone of zones) {
+    if (!zone.unlocked && x >= zone.left && x <= zone.right) {
+      zone.unlocked = true;
+      zone.element.classList.add("unlocked");
+      hit = true;
+
+      addLog("LOCK NODE UNLOCKED");
+      statusText.textContent = "NODE UNLOCKED";
+      break;
     }
   }
 
-  function animate() {
-    if (!unlocked) {
-      x += speed * direction;
-
-      if (x > 700 || x < 30) {
-        direction *= -1;
-      }
-
-      bar.style.left = x + "px";
-    }
-
-    requestAnimationFrame(animate);
+  if (!hit) {
+    statusText.textContent = "BAD INPUT";
+    addLog("MISS");
   }
 
-  document.addEventListener("keydown", function(e) {
-    if (e.code === "Space" && !unlocked) {
-      e.preventDefault();
+  const allUnlocked = zones.every(z => z.unlocked);
 
-      const zoneLeft = 760 / 2 - 40;
-      const zoneRight = 760 / 2 + 40;
+  if (allUnlocked) {
+    openSafe(false);
+  }
+}
 
-      if (x >= zoneLeft && x <= zoneRight) {
-        unlocked = true;
-        statusText.textContent = "ACCESS GRANTED";
-        statusText.className = "status success";
-        addLog("AUTH KEY MATCHED");
-        addLog("DOOR UNLOCKED");
-      } else {
-        statusText.textContent = "ACCESS DENIED";
-        statusText.className = "status fail";
-        addLog("BAD TIMING");
-        addLog("RETRY REQUIRED");
+function openSafe(auto) {
+  finished = true;
 
-        setTimeout(() => {
-          statusText.textContent = "WAITING FOR INPUT...";
-          statusText.className = "status";
-        }, 650);
-      }
+  currentSafe.opened = true;
+  currentSafe.element.classList.add("opened");
+
+  if (auto) {
+    statusText.textContent = "AUTO UNLOCKED";
+    addLog("AUTO OVERRIDE COMPLETE");
+  } else {
+    statusText.textContent = "SAFE OPENED";
+    addLog("MANUAL UNLOCK COMPLETE");
+  }
+
+  autoFill.style.width = "100%";
+  percentText.textContent = "AUTO UNLOCK 100%";
+
+  const loot = rollLoot(currentSafe.difficulty);
+  showLoot(loot);
+}
+
+function rollLoot(difficulty) {
+  let chances;
+
+  if (difficulty <= 4) {
+    chances = {
+      red: 1,
+      gold: 4,
+      purple: 10,
+      blue: 30,
+      green: 55
+    };
+  } else if (difficulty <= 6) {
+    chances = {
+      red: 4,
+      gold: 10,
+      purple: 22,
+      blue: 34,
+      green: 30
+    };
+  } else {
+    chances = {
+      red: 9,
+      gold: 18,
+      purple: 32,
+      blue: 26,
+      green: 15
+    };
+  }
+
+  const roll = rand(0, 100);
+  let total = 0;
+
+  for (const quality in chances) {
+    total += chances[quality];
+    if (roll <= total) {
+      const pool = items[quality];
+      return {
+        quality,
+        item: pool[Math.floor(rand(0, pool.length))]
+      };
     }
-  });
+  }
 
-  setInterval(() => {
-    if (!unlocked) {
-      addLog("DATA STREAM " + Math.floor(Math.random() * 9999));
+  return {
+    quality: "green",
+    item: "现金小包"
+  };
+}
+
+function showLoot(loot) {
+  lootBox.className = "loot-box show";
+  lootQuality.className = "loot-quality " + loot.quality;
+  lootQuality.textContent = qualityNames[loot.quality];
+  lootItem.textContent = "获得：" + loot.item;
+}
+
+function animate() {
+  if (!finished && currentSafe) {
+    x += speed * direction;
+
+    if (x >= trackRight || x <= trackLeft) {
+      direction *= -1;
     }
-  }, 700);
 
-  animate();
+    bar.style.left = x + "px";
+
+    const elapsed = Date.now() - startTime;
+    const percent = Math.min(elapsed / 10000 * 100, 100);
+
+    autoFill.style.width = percent + "%";
+    percentText.textContent = "AUTO UNLOCK " + Math.floor(percent) + "%";
+
+    if (percent >= 100) {
+      openSafe(true);
+    }
+  }
+
+  requestAnimationFrame(animate);
+}
+
+document.addEventListener("keydown", e => {
+  if (e.code === "Space") {
+    e.preventDefault();
+    checkHit();
+  }
+});
+
+createSafes();
+animate();
 </script>
+
 </body>
 </html>
