@@ -2,182 +2,252 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8" />
-<title>Safe Wall Loot Game</title>
+<title>Safe Wall Loot</title>
+
 <style>
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
   min-height: 100vh;
-  background: radial-gradient(circle at center, #1b3031, #050707 75%);
   font-family: monospace;
-  color: #28ffe7;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background: radial-gradient(circle at center, #1a3031, #050707 75%);
+  color: #27ffe7;
+  overflow: hidden;
 }
 
-.app {
-  width: 1100px;
-  height: 650px;
-  display: grid;
-  grid-template-columns: 1fr 430px;
-  gap: 22px;
+.hud {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  width: 290px;
+  z-index: 10;
+  padding: 14px;
+  border: 1px solid rgba(0,255,230,0.45);
+  background: rgba(3, 14, 16, 0.82);
+  box-shadow: 0 0 18px rgba(0,255,230,0.25);
+}
+
+.hud-title {
+  font-size: 13px;
+  letter-spacing: 3px;
+  margin-bottom: 10px;
+}
+
+.inventory {
+  max-height: 160px;
+  overflow-y: auto;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.inventory div {
+  margin-bottom: 5px;
+}
+
+button {
+  background: transparent;
+  border: 1px solid #27ffe7;
+  color: #27ffe7;
+  padding: 7px 12px;
+  cursor: pointer;
+  font-family: monospace;
+}
+
+button:hover {
+  background: rgba(39,255,231,0.15);
 }
 
 .safe-wall {
-  border: 2px solid rgba(0,255,230,0.45);
-  background: rgba(4,18,20,0.85);
-  padding: 25px;
+  width: 100vw;
+  height: 100vh;
+  padding: 100px 40px 40px;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
-  box-shadow: inset 0 0 35px rgba(0,255,230,0.12);
+  grid-template-columns: repeat(6, 1fr);
+  gap: 22px;
 }
 
 .safe {
-  height: 120px;
-  background:
-    linear-gradient(145deg, #273536, #0d1517);
-  border: 2px solid rgba(180,220,220,0.25);
   position: relative;
+  background: linear-gradient(145deg, #293839, #0d1517);
+  border: 2px solid rgba(190,230,230,0.25);
   cursor: pointer;
-  transition: 0.15s;
   box-shadow:
-    inset 0 0 20px rgba(255,255,255,0.08),
-    0 0 10px rgba(0,0,0,0.5);
+    inset 0 0 22px rgba(255,255,255,0.08),
+    0 0 16px rgba(0,0,0,0.6);
+  transition: 0.15s;
 }
 
 .safe:hover {
-  transform: scale(1.04);
-  border-color: #28ffe7;
-  box-shadow: 0 0 18px rgba(40,255,231,0.5);
+  transform: scale(1.035);
+  border-color: #27ffe7;
+  box-shadow: 0 0 22px rgba(39,255,231,0.5);
 }
 
 .safe.opened {
-  opacity: 0.45;
+  opacity: 0.35;
   cursor: default;
 }
 
 .safe-door {
   position: absolute;
-  inset: 14px;
+  inset: 16px;
   border: 2px solid rgba(255,255,255,0.18);
 }
 
 .safe-knob {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: radial-gradient(circle, #e8e8d0, #665f45);
+  background: radial-gradient(circle, #eee7c6, #685f3e);
   position: absolute;
-  right: 22px;
-  top: 42px;
-  box-shadow: 0 0 8px rgba(255,220,120,0.45);
+  right: 26px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .safe-label {
   position: absolute;
-  left: 12px;
-  bottom: 8px;
+  left: 14px;
+  bottom: 10px;
   font-size: 12px;
   opacity: 0.75;
 }
 
-.panel {
-  border: 2px solid rgba(0,255,230,0.55);
-  background: rgba(3,15,18,0.92);
-  padding: 22px;
+.modal-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.72);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 30;
+}
+
+.modal-bg.show {
+  display: flex;
+}
+
+.terminal {
+  width: 860px;
+  height: 480px;
+  background: rgba(3, 16, 20, 0.95);
+  border: 2px solid rgba(0,255,230,0.75);
+  box-shadow:
+    0 0 28px rgba(0,255,230,0.65),
+    inset 0 0 40px rgba(0,255,230,0.15);
+  padding: 28px;
   position: relative;
   overflow: hidden;
-  box-shadow:
-    0 0 20px rgba(0,255,230,0.35),
-    inset 0 0 30px rgba(0,255,230,0.12);
+}
+
+.terminal::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.04) 0,
+    rgba(255,255,255,0.04) 1px,
+    transparent 2px,
+    transparent 6px
+  );
+  animation: scan 4s linear infinite;
+}
+
+@keyframes scan {
+  from { transform: translateY(-30px); }
+  to { transform: translateY(30px); }
 }
 
 .title {
-  letter-spacing: 4px;
+  letter-spacing: 5px;
   font-size: 14px;
-  margin-bottom: 22px;
+  opacity: 0.85;
+  margin-bottom: 28px;
 }
 
 .game {
-  height: 120px;
-  border: 1px solid rgba(0,255,230,0.3);
+  height: 150px;
+  border: 1px solid rgba(0,255,230,0.32);
+  background: rgba(0,255,230,0.04);
   position: relative;
-  background: rgba(0,255,230,0.035);
 }
 
 .track {
   position: absolute;
-  left: 25px;
-  right: 25px;
-  top: 52px;
-  height: 24px;
+  left: 40px;
+  right: 40px;
+  top: 65px;
+  height: 28px;
   border-top: 1px solid rgba(0,255,230,0.35);
   border-bottom: 1px solid rgba(0,255,230,0.35);
 }
 
 .zone {
   position: absolute;
-  top: 36px;
-  height: 56px;
+  top: 46px;
+  height: 65px;
   border: 2px solid #22ffe6;
   background: rgba(34,255,230,0.14);
   box-shadow: 0 0 12px rgba(34,255,230,0.8);
 }
 
 .zone.unlocked {
-  border-color: #73ff84;
-  background: rgba(115,255,132,0.18);
+  border-color: #69ff79;
+  background: rgba(105,255,121,0.2);
   opacity: 0.45;
 }
 
 .bar {
   position: absolute;
-  top: 30px;
-  width: 8px;
-  height: 70px;
+  top: 38px;
+  width: 9px;
+  height: 82px;
   background: white;
-  box-shadow: 0 0 16px white;
+  box-shadow: 0 0 18px white;
+  z-index: 5;
 }
 
 .status {
   margin-top: 18px;
-  letter-spacing: 2px;
-  height: 22px;
+  letter-spacing: 3px;
+  height: 24px;
 }
 
 .auto-wrap {
-  margin-top: 28px;
+  margin-top: 36px;
   position: relative;
 }
 
 .percent {
   position: absolute;
   right: 0;
-  top: -22px;
-  font-size: 13px;
+  top: -24px;
+  font-size: 14px;
 }
 
 .auto-bg {
-  height: 7px;
-  background: rgba(255,255,255,0.12);
+  height: 8px;
   border: 1px solid rgba(0,255,230,0.35);
+  background: rgba(255,255,255,0.12);
 }
 
 .auto-fill {
   height: 100%;
   width: 0%;
-  background: #28ffe7;
-  box-shadow: 0 0 12px #28ffe7;
+  background: #27ffe7;
+  box-shadow: 0 0 14px #27ffe7;
 }
 
 .loot-box {
-  margin-top: 26px;
-  min-height: 140px;
+  margin-top: 28px;
+  min-height: 90px;
   border: 1px solid rgba(255,255,255,0.18);
-  padding: 16px;
+  padding: 15px;
   display: none;
 }
 
@@ -187,53 +257,53 @@ body {
 
 .loot-quality {
   font-size: 20px;
-  margin-bottom: 10px;
   font-weight: bold;
+  margin-bottom: 8px;
 }
 
-.loot-item {
-  font-size: 15px;
-  opacity: 0.9;
-}
-
-.red { color: #ff3b3b; text-shadow: 0 0 12px #ff3b3b; }
+.red { color: #ff3838; text-shadow: 0 0 12px #ff3838; }
 .gold { color: #ffd85a; text-shadow: 0 0 12px #ffd85a; }
 .purple { color: #bd6bff; text-shadow: 0 0 12px #bd6bff; }
 .blue { color: #4aa3ff; text-shadow: 0 0 12px #4aa3ff; }
 .green { color: #5cff79; text-shadow: 0 0 12px #5cff79; }
 
-.log {
-  margin-top: 22px;
-  height: 120px;
-  overflow: hidden;
-  font-size: 12px;
-  opacity: 0.8;
+.close {
+  position: absolute;
+  right: 24px;
+  top: 22px;
+  font-size: 22px;
+  cursor: pointer;
+  opacity: 0.7;
 }
 
-.hint {
-  position: absolute;
-  bottom: 14px;
-  right: 20px;
-  opacity: 0.6;
-  font-size: 12px;
+.close:hover {
+  opacity: 1;
 }
 </style>
 </head>
 
 <body>
 
-<div class="app">
-  <div class="safe-wall" id="safeWall"></div>
+<div class="hud">
+  <div class="hud-title">LOOT STORAGE</div>
+  <div class="inventory" id="inventory">暂无物品</div>
+  <button onclick="resetGame()">RESET</button>
+</div>
 
-  <div class="panel">
-    <div class="title">SAFE WALL /// LOOT TERMINAL</div>
+<div class="safe-wall" id="safeWall"></div>
+
+<div class="modal-bg" id="modal">
+  <div class="terminal">
+    <div class="close" onclick="closeModal()">×</div>
+
+    <div class="title" id="terminalTitle">SAFE TERMINAL</div>
 
     <div class="game" id="game">
       <div class="track"></div>
       <div class="bar" id="bar"></div>
     </div>
 
-    <div class="status" id="status">SELECT A SAFE...</div>
+    <div class="status" id="status">WAITING...</div>
 
     <div class="auto-wrap">
       <div class="percent" id="percent">AUTO UNLOCK 0%</div>
@@ -244,17 +314,14 @@ body {
 
     <div class="loot-box" id="lootBox">
       <div class="loot-quality" id="lootQuality"></div>
-      <div class="loot-item" id="lootItem"></div>
+      <div id="lootItem"></div>
     </div>
-
-    <div class="log" id="log"></div>
-
-    <div class="hint">CLICK SAFE / PRESS SPACE</div>
   </div>
 </div>
 
 <script>
 const safeWall = document.getElementById("safeWall");
+const modal = document.getElementById("modal");
 const game = document.getElementById("game");
 const bar = document.getElementById("bar");
 const statusText = document.getElementById("status");
@@ -263,49 +330,47 @@ const autoFill = document.getElementById("autoFill");
 const lootBox = document.getElementById("lootBox");
 const lootQuality = document.getElementById("lootQuality");
 const lootItem = document.getElementById("lootItem");
-const log = document.getElementById("log");
+const inventory = document.getElementById("inventory");
+const terminalTitle = document.getElementById("terminalTitle");
 
-const trackLeft = 25;
-const trackRight = 375;
+const trackLeft = 40;
+const trackRight = 820;
 
 let safes = [];
 let currentSafe = null;
 let zones = [];
 let x = trackLeft;
 let direction = 1;
-let speed = 3.8;
-let startTime = 0;
+let speed = 4;
 let finished = true;
+let startTime = 0;
+let inventoryItems = [];
 
-const items = {
-  red: ["实验级能源核心", "军用黑卡", "原型武器蓝图"],
+const lootPools = {
+  red: ["实验级能源核心", "机密军用黑卡", "原型武器蓝图"],
   gold: ["金条箱", "高级芯片组", "加密数据盘"],
-  purple: ["稀有电池模块", "战术瞄准镜", "紫色密钥"],
-  blue: ["电子零件包", "保险箱破解器", "蓝色数据卡"],
+  purple: ["紫色密钥", "稀有电池模块", "战术瞄准镜"],
+  blue: ["蓝色数据卡", "电子零件包", "破解器模块"],
   green: ["现金小包", "旧硬盘", "普通工具组"]
 };
 
 const qualityNames = {
-  red: "红色传说物品",
-  gold: "金色高级物品",
-  purple: "紫色稀有物品",
-  blue: "蓝色精良物品",
-  green: "绿色普通物品"
+  red: "红色传说",
+  gold: "金色高级",
+  purple: "紫色稀有",
+  blue: "蓝色精良",
+  green: "绿色普通"
 };
 
 function rand(min, max) {
   return Math.random() * (max - min) + min;
 }
 
-function addLog(text) {
-  const div = document.createElement("div");
-  div.textContent = "> " + text;
-  log.prepend(div);
-  if (log.children.length > 8) log.removeChild(log.lastChild);
-}
-
 function createSafes() {
-  for (let i = 0; i < 12; i++) {
+  safeWall.innerHTML = "";
+  safes = [];
+
+  for (let i = 0; i < 24; i++) {
     const difficulty = Math.floor(rand(4, 9));
 
     const safe = {
@@ -323,7 +388,7 @@ function createSafes() {
       <div class="safe-label">SAFE-${String(i + 1).padStart(2, "0")} / LOCK ${difficulty}</div>
     `;
 
-    div.addEventListener("click", () => selectSafe(safe));
+    div.addEventListener("click", () => openUnlockModal(safe));
 
     safe.element = div;
     safes.push(safe);
@@ -336,50 +401,71 @@ function clearZones() {
   zones = [];
 }
 
-function selectSafe(safe) {
-  if (safe.opened) {
-    statusText.textContent = "THIS SAFE IS EMPTY";
-    addLog("SAFE-" + safe.id + " ALREADY OPENED");
-    return;
-  }
+function openUnlockModal(safe) {
+  if (safe.opened) return;
 
   currentSafe = safe;
   finished = false;
   startTime = Date.now();
   x = trackLeft;
   direction = 1;
-  speed = 3.2 + safe.difficulty * 0.25;
 
+  speed = 3.3 + safe.difficulty * 0.28;
+
+  terminalTitle.textContent = `SAFE-${String(safe.id).padStart(2, "0")} /// LOCK ${safe.difficulty}`;
+
+  modal.classList.add("show");
   lootBox.classList.remove("show");
-  clearZones();
-  createZones(safe.difficulty);
-
-  statusText.textContent = "SAFE-" + safe.id + " SELECTED";
+  statusText.textContent = "WAITING FOR INPUT...";
   autoFill.style.width = "0%";
   percentText.textContent = "AUTO UNLOCK 0%";
 
-  addLog("SAFE-" + safe.id + " LOADED");
-  addLog("DIFFICULTY LEVEL: " + safe.difficulty);
+  clearZones();
+  createNonOverlappingZones(safe.difficulty);
 }
 
-function createZones(count) {
-  for (let i = 0; i < count; i++) {
-    const width = rand(22, 65);
+function closeModal() {
+  if (!finished) return;
+  modal.classList.remove("show");
+}
+
+function createNonOverlappingZones(count) {
+  const minWidth = 36;
+  const maxWidth = 85;
+  const gap = 18;
+
+  let attempts = 0;
+
+  while (zones.length < count && attempts < 1000) {
+    attempts++;
+
+    const width = rand(minWidth, maxWidth);
     const left = rand(trackLeft + 10, trackRight - width - 10);
+    const right = left + width;
 
-    const zone = document.createElement("div");
-    zone.className = "zone";
-    zone.style.left = left + "px";
-    zone.style.width = width + "px";
-
-    game.appendChild(zone);
-
-    zones.push({
-      left,
-      right: left + width,
-      unlocked: false,
-      element: zone
+    const overlaps = zones.some(z => {
+      return left < z.right + gap && right > z.left - gap;
     });
+
+    if (!overlaps) {
+      const zone = document.createElement("div");
+      zone.className = "zone";
+      zone.style.left = left + "px";
+      zone.style.width = width + "px";
+
+      game.appendChild(zone);
+
+      zones.push({
+        left,
+        right,
+        unlocked: false,
+        element: zone
+      });
+    }
+  }
+
+  if (zones.length < count) {
+    console.warn("判定区空间不够，减少了生成数量");
   }
 }
 
@@ -393,21 +479,19 @@ function checkHit() {
       zone.unlocked = true;
       zone.element.classList.add("unlocked");
       hit = true;
-
-      addLog("LOCK NODE UNLOCKED");
-      statusText.textContent = "NODE UNLOCKED";
+      statusText.textContent = "LOCK NODE UNLOCKED";
       break;
     }
   }
 
   if (!hit) {
     statusText.textContent = "BAD INPUT";
-    addLog("MISS");
+    setTimeout(() => {
+      if (!finished) statusText.textContent = "WAITING FOR INPUT...";
+    }, 450);
   }
 
-  const allUnlocked = zones.every(z => z.unlocked);
-
-  if (allUnlocked) {
+  if (zones.every(z => z.unlocked)) {
     openSafe(false);
   }
 }
@@ -418,48 +502,25 @@ function openSafe(auto) {
   currentSafe.opened = true;
   currentSafe.element.classList.add("opened");
 
-  if (auto) {
-    statusText.textContent = "AUTO UNLOCKED";
-    addLog("AUTO OVERRIDE COMPLETE");
-  } else {
-    statusText.textContent = "SAFE OPENED";
-    addLog("MANUAL UNLOCK COMPLETE");
-  }
-
   autoFill.style.width = "100%";
   percentText.textContent = "AUTO UNLOCK 100%";
 
+  statusText.textContent = auto ? "AUTO UNLOCKED" : "SAFE OPENED";
+
   const loot = rollLoot(currentSafe.difficulty);
   showLoot(loot);
+  addToInventory(loot);
 }
 
 function rollLoot(difficulty) {
   let chances;
 
   if (difficulty <= 4) {
-    chances = {
-      red: 1,
-      gold: 4,
-      purple: 10,
-      blue: 30,
-      green: 55
-    };
+    chances = { red: 1, gold: 4, purple: 10, blue: 30, green: 55 };
   } else if (difficulty <= 6) {
-    chances = {
-      red: 4,
-      gold: 10,
-      purple: 22,
-      blue: 34,
-      green: 30
-    };
+    chances = { red: 4, gold: 10, purple: 22, blue: 34, green: 30 };
   } else {
-    chances = {
-      red: 9,
-      gold: 18,
-      purple: 32,
-      blue: 26,
-      green: 15
-    };
+    chances = { red: 9, gold: 18, purple: 32, blue: 26, green: 15 };
   }
 
   const roll = rand(0, 100);
@@ -468,17 +529,18 @@ function rollLoot(difficulty) {
   for (const quality in chances) {
     total += chances[quality];
     if (roll <= total) {
-      const pool = items[quality];
+      const pool = lootPools[quality];
+
       return {
         quality,
-        item: pool[Math.floor(rand(0, pool.length))]
+        name: pool[Math.floor(rand(0, pool.length))]
       };
     }
   }
 
   return {
     quality: "green",
-    item: "现金小包"
+    name: "现金小包"
   };
 }
 
@@ -486,7 +548,38 @@ function showLoot(loot) {
   lootBox.className = "loot-box show";
   lootQuality.className = "loot-quality " + loot.quality;
   lootQuality.textContent = qualityNames[loot.quality];
-  lootItem.textContent = "获得：" + loot.item;
+  lootItem.textContent = "获得：" + loot.name;
+}
+
+function addToInventory(loot) {
+  inventoryItems.unshift(loot);
+  renderInventory();
+}
+
+function renderInventory() {
+  if (inventoryItems.length === 0) {
+    inventory.textContent = "暂无物品";
+    return;
+  }
+
+  inventory.innerHTML = "";
+
+  inventoryItems.forEach(item => {
+    const div = document.createElement("div");
+    div.className = item.quality;
+    div.textContent = `[${qualityNames[item.quality]}] ${item.name}`;
+    inventory.appendChild(div);
+  });
+}
+
+function resetGame() {
+  inventoryItems = [];
+  renderInventory();
+  modal.classList.remove("show");
+  clearZones();
+  createSafes();
+  finished = true;
+  currentSafe = null;
 }
 
 function animate() {
@@ -517,6 +610,10 @@ document.addEventListener("keydown", e => {
   if (e.code === "Space") {
     e.preventDefault();
     checkHit();
+  }
+
+  if (e.code === "Escape") {
+    closeModal();
   }
 });
 
